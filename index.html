@@ -249,7 +249,7 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);min-height:100vh;dire
       <div class="shift-box waiting" id="shift-box">
         <div>
           <div class="shift-label">موعد بدء الشيفت</div>
-          <div class="shift-time">05:00</div>
+          <div class="shift-time">07:00</div>
         </div>
         <div style="text-align:left;">
           <div class="shift-label" id="shift-status-label">⏳ الوقت المتبقي</div>
@@ -258,11 +258,11 @@ body{font-family:'Tajawal',sans-serif;background:var(--bg);min-height:100vh;dire
       </div>
     </div>
     <div style="width:100%;max-width:420px;display:flex;flex-direction:column;gap:8px;">
-      <button class="btn btn-disabled" id="start-btn" onclick="goFaceVerify()">
-        <span style="font-size:22px;">🔒</span> الزر متاح قبل ٥ دقائق من الشيفت
+      <button class="btn btn-navy" id="start-btn" onclick="goFaceVerify()">
+        <span style="font-size:22px;">👆</span> بدء الشيفت — التحقق بالوجه
       </button>
       <p style="text-align:center;font-size:12px;color:#90A4AE;">يتطلب التحقق بالوجه قبل بدء الشيفت</p>
-      <button class="btn" style="background:rgba(26,35,126,.07);color:var(--navy);padding:10px;font-size:13px;border-radius:12px;" onclick="showConfig()">⚙️ إعداد المفاتيح</button>
+      <button class="btn" style="background:rgba(26,35,126,.07);color:var(--navy);padding:10px;font-size:13px;border-radius:12px;" onclick="showConfig()">⚙️ إعداد مفاتيح API</button>
     </div>
   </div>
 
@@ -573,32 +573,17 @@ function updateClock() {
   document.getElementById('home-date').textContent =
     now.toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
-  const [h,m] = [7,0];
-  const shift = new Date(now); shift.setHours(h,m,0,0);
-  const diff = Math.floor((shift - now) / 60000);
+  // الزر متاح دايماً
   const btn = document.getElementById('start-btn');
   const box = document.getElementById('shift-box');
   const cd = document.getElementById('shift-countdown');
   const sl = document.getElementById('shift-status-label');
 
-  if (diff <= 0) {
-    cd.textContent = 'حان وقت الشيفت!'; cd.style.color = 'var(--accept-d)';
-    sl.textContent = '🟢 جاهز للبدء'; box.className = 'shift-box ready';
-    btn.className = 'btn btn-navy'; btn.innerHTML = '<span style="font-size:22px;">👆</span> بدء الشيفت — التحقق بالوجه';
-    btn.onclick = goFaceVerify;
-  } else if (diff <= 5) {
-    cd.textContent = diff + ' دقائق'; cd.style.color = 'var(--accept-d)';
-    sl.textContent = '🟢 جاهز للبدء'; box.className = 'shift-box ready';
-    btn.className = 'btn btn-navy'; btn.innerHTML = '<span style="font-size:22px;">👆</span> بدء الشيفت — التحقق بالوجه';
-    btn.onclick = goFaceVerify;
-  } else {
-    const hrs = Math.floor(diff/60), mins = diff%60;
-    cd.textContent = (hrs?hrs+' ساعة و':'') + mins + ' دقيقة'; cd.style.color='var(--warn-d)';
-    sl.textContent = '⏳ الوقت المتبقي'; box.className = 'shift-box waiting';
-    btn.className = 'btn btn-disabled';
-    btn.innerHTML = '<span style="font-size:22px;">🔒</span> الزر متاح قبل ٥ دقائق من الشيفت';
-    btn.onclick = null;
-  }
+  cd.textContent = 'جاهز الآن'; cd.style.color = 'var(--accept-d)';
+  sl.textContent = '🟢 جاهز للبدء'; box.className = 'shift-box ready';
+  btn.className = 'btn btn-navy';
+  btn.innerHTML = '<span style="font-size:22px;">👆</span> بدء الشيفت — التحقق بالوجه';
+  btn.onclick = goFaceVerify;
 }
 
 // ==================== SCREEN NAVIGATION ====================
@@ -1014,11 +999,12 @@ function showToast(msg, type='') {
 
 // ==================== START ====================
 window.onload = () => {
-  loadConfig();
-  // If no keys stored, show modal on first load
-  if (!localStorage.getItem('maps_key') && !localStorage.getItem('claude_key')) {
-    document.getElementById('config-modal').classList.remove('hidden');
-  }
+  // تحميل المفاتيح المحفوظة بشكل صامت بدون مطالبة
+  state.mapsKey = localStorage.getItem('maps_key') || '';
+  state.claudeKey = localStorage.getItem('claude_key') || '';
+  state.demoMode = true;
+  document.getElementById('config-modal').classList.add('hidden');
+  init();
 };
 </script>
 </body>
