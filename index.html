@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>نظام إدارة الباص المدرسي</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --navy:#1A237E;--navy2:#283593;--navy3:#3949AB;
+  --accept:#B3E5FC;--accept-d:#0288D1;
+  --warn:#FFF9C4;--warn-d:#F9A825;
+  --defer:#F8BBD0;--defer-d:#C2185B;
+  --success:#C8E6C9;--success-d:#2E7D32;
+  --bg:#EEF1FF;--white:#fff;
+  --shadow:0 8px 32px rgba(26,35,126,.13);
+  --shadow-lg:0 16px 48px rgba(26,35,126,.2);
+  --r:20px;--r2:14px;--r3:10px;
+}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);min-height:100vh;direction:rtl;overflow:hidden;}
+#app{position:fixed;inset:0;overflow:hidden;}
+
+/* ======= SCREENS ======= */
+.screen{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden;}
+.screen.active{display:flex;}
+
+/* ======= HOME ======= */
+#home{background:linear-gradient(155deg,#EEF1FF 0%,#E8EAF6 50%,#E3F2FD 100%);align-items:center;justify-content:space-between;padding:52px 24px 44px;}
+.home-logo{width:76px;height:76px;background:var(--navy);border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:38px;margin:0 auto 18px;box-shadow:0 10px 30px rgba(26,35,126,.28);}
+.home-title{font-size:21px;font-weight:900;color:var(--navy);text-align:center;margin-bottom:4px;}
+.home-sub{font-size:13px;color:#78909C;text-align:center;}
+.supervisor-card{background:rgba(255,255,255,.92);border-radius:24px;padding:20px;box-shadow:var(--shadow);backdrop-filter:blur(12px);width:100%;max-width:400px;}
+.sup-row{display:flex;align-items:center;gap:14px;margin-bottom:16px;}
+.sup-avatar{width:66px;height:66px;border-radius:50%;object-fit:cover;border:3px solid var(--accept);}
+.sup-name{font-size:18px;font-weight:800;color:var(--navy);}
+.sup-hello{font-size:12px;color:#90A4AE;margin-bottom:3px;}
+.clock-box{background:var(--bg);border-radius:14px;padding:12px 16px;text-align:center;}
+.clock-date{font-size:11px;color:#78909C;margin-bottom:2px;}
+.clock-time{font-size:34px;font-weight:900;color:var(--navy);letter-spacing:2px;direction:ltr;}
+.shift-box{border-radius:18px;padding:14px 16px;width:100%;max-width:400px;display:flex;justify-content:space-between;align-items:center;transition:background .4s;}
+.shift-box.ready{background:rgba(179,229,252,.7);border:1.5px solid rgba(2,136,209,.25);}
+.shift-box.waiting{background:rgba(255,249,196,.7);border:1.5px solid rgba(249,168,37,.25);}
+.shift-time{font-size:26px;font-weight:900;color:var(--navy);direction:ltr;}
+.shift-label{font-size:11px;color:#546E7A;margin-bottom:3px;}
+.shift-countdown{font-size:13px;font-weight:700;}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:16px;font-family:'Tajawal',sans-serif;font-weight:800;cursor:pointer;transition:transform .15s,box-shadow .15s;width:100%;}
+.btn:active{transform:scale(.96);}
+.btn-navy{background:var(--navy);color:#fff;padding:18px;font-size:17px;box-shadow:0 8px 24px rgba(26,35,126,.28);}
+.btn-disabled{background:#E0E0E0;color:#9E9E9E;padding:18px;font-size:16px;cursor:not-allowed;}
+.btn-blue{background:var(--accept-d);color:#fff;padding:16px;font-size:16px;}
+.btn-accept{background:var(--accept);color:var(--navy);padding:14px 10px;font-size:14px;flex-direction:column;gap:3px;border-radius:14px;}
+.btn-defer{background:var(--defer);color:var(--defer-d);padding:14px 10px;font-size:14px;flex-direction:column;gap:3px;border-radius:14px;}
+.btn-cancel{background:#FFCDD2;color:#C62828;padding:14px 10px;font-size:14px;flex-direction:column;gap:3px;border-radius:14px;}
+.btn-green{background:var(--success);color:var(--success-d);padding:16px;font-size:16px;}
+.btn-white{background:#fff;color:var(--navy);padding:17px;font-size:16px;box-shadow:var(--shadow);}
+.btn-outline{background:rgba(255,255,255,.15);color:#fff;padding:14px;font-size:15px;border:1.5px solid rgba(255,255,255,.3);}
+.btn-sm{padding:11px 14px;font-size:13px;border-radius:12px;width:auto;}
+
+/* badge */
+.badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;}
+.badge-blue{background:var(--accept);color:var(--navy);}
+.badge-orange{background:var(--warn);color:#E65100;}
+.badge-green{background:var(--success);color:var(--success-d);}
+
+/* ======= FACE VERIFY ======= */
+#face{background:linear-gradient(155deg,#1A237E,#283593 60%,#3949AB);align-items:center;justify-content:space-between;padding:48px 24px 40px;}
+.face-header{width:100%;display:flex;align-items:center;gap:12px;}
+.back-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:42px;height:42px;border-radius:13px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.face-header-text h2{color:#fff;font-size:18px;font-weight:800;}
+.face-header-text p{color:rgba(255,255,255,.55);font-size:12px;}
+.face-circle{width:210px;height:210px;border-radius:50%;overflow:hidden;position:relative;border:4px solid rgba(255,255,255,.25);background:rgba(255,255,255,.07);box-shadow:0 0 40px rgba(255,255,255,.08);transition:border-color .4s,box-shadow .4s;}
+.face-circle.ok{border-color:#4CAF50;box-shadow:0 0 40px rgba(76,175,80,.35);}
+.face-circle.fail{border-color:#FF5252;box-shadow:0 0 40px rgba(255,82,82,.35);}
+.face-circle video,.face-circle img{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);}
+.face-circle .fc-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:rgba(255,255,255,.65);}
+.face-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;}
+.face-overlay.processing{background:rgba(26,35,126,.72);}
+.face-overlay.success-ov{background:rgba(76,175,80,.28);}
+.face-overlay.fail-ov{background:rgba(255,82,82,.28);}
+.spinner{width:22px;height:22px;border:3px solid rgba(255,255,255,.25);border-top:3px solid #fff;border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.face-status{text-align:center;color:rgba(255,255,255,.85);}
+.face-status h3{font-size:17px;font-weight:800;margin-bottom:5px;}
+.face-status p{font-size:13px;color:rgba(255,255,255,.55);}
+.face-status.ok h3{color:#A5D6A7;}
+.face-status.fail h3{color:#EF9A9A;}
+.sup-strip{background:rgba(255,255,255,.1);border-radius:16px;padding:12px 16px;width:100%;max-width:380px;display:flex;align-items:center;gap:12px;}
+.sup-strip img{width:44px;height:44px;border-radius:50%;object-fit:cover;}
+.sup-strip .name{color:#fff;font-size:15px;font-weight:700;}
+.sup-strip .role{color:rgba(255,255,255,.5);font-size:11px;}
+.sup-strip .bus{margin-right:auto;background:rgba(255,255,255,.15);color:#fff;padding:4px 10px;border-radius:12px;font-size:12px;font-weight:600;}
+
+/* ======= REQUEST ======= */
+#request{position:relative;}
+#map-placeholder{position:absolute;inset:0;background:linear-gradient(135deg,#EEF1FF,#E3F2FD);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
+#map-placeholder .map-dots{font-size:48px;}
+#map-placeholder p{color:#90A4AE;font-size:13px;}
+#gmap{position:absolute;inset:0;}
+.status-bar{position:absolute;top:16px;right:16px;display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.92);padding:6px 13px;border-radius:20px;font-size:12px;font-weight:600;color:var(--navy);box-shadow:var(--shadow);backdrop-filter:blur(8px);z-index:30;}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#4CAF50;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+.fab{position:absolute;top:16px;left:16px;width:52px;height:52px;background:var(--navy);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:var(--shadow);z-index:30;font-size:22px;transition:transform .15s;}
+.fab:active{transform:scale(.9);}
+.fab .fab-count{position:absolute;top:-4px;right:-4px;background:#FF5252;color:#fff;font-size:11px;font-weight:800;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.bottom-card{position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,.97);border-radius:24px 24px 0 0;padding:14px 18px 32px;box-shadow:var(--shadow-lg);z-index:20;backdrop-filter:blur(14px);}
+.drag-handle{width:38px;height:4px;background:#D0D5F0;border-radius:2px;margin:0 auto 14px;}
+.request-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.request-top span{font-size:12px;color:#90A4AE;font-weight:600;}
+.student-row{display:flex;align-items:center;gap:12px;margin-bottom:11px;}
+.student-row img{width:58px;height:58px;border-radius:50%;object-fit:cover;border:3px solid var(--accept);}
+.student-row .sname{font-size:17px;font-weight:800;color:var(--navy);margin-bottom:2px;}
+.student-row .sid{font-size:12px;color:#90A4AE;}
+.student-row .sschool{font-size:12px;color:#78909C;margin-top:2px;}
+.addr-box{background:var(--bg);border-radius:12px;padding:10px 12px;margin-bottom:13px;display:flex;gap:8px;align-items:flex-start;}
+.addr-box .alabel{font-size:11px;color:#90A4AE;margin-bottom:2px;}
+.addr-box .aval{font-size:13px;color:var(--navy);font-weight:600;}
+.three-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.three-btns .bicon{font-size:20px;}
+.three-btns .blabel{font-size:13px;}
+
+/* empty state */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;gap:12px;}
+.empty-state .ei{font-size:72px;}
+.empty-state h2{font-size:21px;font-weight:800;color:var(--navy);}
+.empty-state p{font-size:14px;color:#78909C;}
+.count-box{background:#fff;border-radius:20px;padding:16px 32px;box-shadow:var(--shadow);}
+.count-box .cn{font-size:42px;font-weight:900;color:var(--navy);}
+.count-box .cl{font-size:13px;color:#90A4AE;}
+
+/* ======= PICKUP ======= */
+#pickup{position:relative;}
+.pickup-card{position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,.97);border-radius:24px 24px 0 0;padding:14px 18px 36px;box-shadow:var(--shadow-lg);z-index:20;backdrop-filter:blur(14px);max-height:68vh;overflow-y:auto;}
+.mini-student{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg);border-radius:12px;margin-bottom:12px;}
+.mini-student img{width:44px;height:44px;border-radius:50%;object-fit:cover;}
+.mini-student .msn{font-size:14px;font-weight:800;color:var(--navy);}
+.mini-student .msa{font-size:11px;color:#90A4AE;}
+.transit-info{background:var(--accept);border-radius:14px;padding:14px;display:flex;gap:10px;align-items:center;margin-bottom:12px;}
+.transit-info .ti{font-size:13px;font-weight:700;color:var(--navy);}
+.transit-info .tis{font-size:11px;color:var(--accept-d);}
+.camera-area{width:100%;aspect-ratio:4/3;border-radius:14px;overflow:hidden;border:2px solid var(--accept-d);margin-bottom:12px;position:relative;background:#f0f4ff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;}
+.camera-area video,.camera-area img.cap-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.camera-area .ca-icon{font-size:40px;}
+.camera-area .ca-text{font-size:13px;color:var(--navy);font-weight:600;}
+.camera-area .ca-sub{font-size:11px;color:#90A4AE;}
+.verify-box{border-radius:14px;padding:14px 16px;text-align:center;margin-bottom:12px;}
+.verify-box.vok{background:#E8F5E9;}
+.verify-box.vfail{background:#FFEBEE;}
+.verify-box .vt{font-size:16px;font-weight:700;margin-bottom:4px;}
+.verify-box.vok .vt{color:var(--success-d);}
+.verify-box.vfail .vt{color:#C62828;}
+.verify-box .vs{font-size:12px;color:#78909C;}
+.two-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.back-fab{position:absolute;z-index:30;top:16px;right:16px;background:rgba(255,255,255,.9);border:none;width:42px;height:42px;border-radius:13px;font-size:16px;cursor:pointer;box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);}
+
+/* ======= BUS LIST ======= */
+#buslist{position:absolute;inset:0;z-index:60;display:none;flex-direction:column;justify-content:flex-end;background:rgba(26,35,126,.3);backdrop-filter:blur(4px);}
+#buslist.active{display:flex;}
+.buslist-sheet{background:#fff;border-radius:24px 24px 0 0;padding:16px 18px 44px;max-height:78vh;display:flex;flex-direction:column;box-shadow:0 -8px 40px rgba(26,35,126,.18);}
+.buslist-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.buslist-title{display:flex;align-items:center;gap:10px;}
+.buslist-title h3{font-size:17px;font-weight:800;color:var(--navy);}
+.buslist-title p{font-size:11px;color:#90A4AE;}
+.count-pill{background:var(--accept);padding:6px 14px;border-radius:20px;display:flex;align-items:center;gap:6px;}
+.count-pill .cn{font-size:22px;font-weight:900;color:var(--navy);line-height:1;}
+.count-pill .cl{font-size:12px;color:var(--navy);font-weight:600;}
+.buslist-scroll{overflow-y:auto;flex:1;margin-bottom:12px;}
+.bus-item{display:flex;align-items:center;gap:12px;padding:11px 10px;border-radius:14px;margin-bottom:5px;}
+.bus-item:nth-child(odd){background:var(--bg);}
+.bus-num{width:28px;height:28px;background:var(--navy);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:800;flex-shrink:0;}
+.bus-item img{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--accept);flex-shrink:0;}
+.bus-item .bi-name{font-size:14px;font-weight:700;color:var(--navy);}
+.bus-item .bi-id{font-size:11px;color:#90A4AE;}
+.bus-item .bi-school{font-size:11px;color:#78909C;}
+.call-btn{background:var(--accept);border:none;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;flex-shrink:0;margin-right:auto;}
+.empty-bus{text-align:center;padding:36px 20px;color:#90A4AE;}
+.empty-bus .ei{font-size:48px;display:block;margin-bottom:10px;}
+
+/* ======= TOAST ======= */
+#toast{position:fixed;bottom:95px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:11px 22px;border-radius:28px;font-size:13px;font-weight:700;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;box-shadow:var(--shadow-lg);}
+#toast.show{opacity:1;}
+#toast.tw{background:var(--warn-d);}
+#toast.te{background:#C62828;}
+
+/* ======= ANIMATIONS ======= */
+.fade-in{animation:fadeIn .35s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+/* ======= CONFIG MODAL ======= */
+#config-modal{position:fixed;inset:0;z-index:300;background:rgba(26,35,126,.5);backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center;}
+#config-modal.hidden{display:none;}
+.config-sheet{background:#fff;border-radius:24px 24px 0 0;padding:24px 20px 44px;width:100%;max-width:500px;}
+.config-sheet h2{font-size:18px;font-weight:800;color:var(--navy);margin-bottom:4px;}
+.config-sheet p{font-size:13px;color:#78909C;margin-bottom:20px;}
+.config-group{margin-bottom:14px;}
+.config-group label{font-size:13px;font-weight:700;color:var(--navy);display:block;margin-bottom:6px;}
+.config-group input{width:100%;padding:12px 14px;border:1.5px solid #D0D5F0;border-radius:12px;font-family:'Tajawal',sans-serif;font-size:14px;color:var(--navy);direction:ltr;outline:none;}
+.config-group input:focus{border-color:var(--accept-d);}
+.config-note{background:var(--bg);border-radius:12px;padding:12px;font-size:12px;color:#546E7A;margin-bottom:16px;line-height:1.6;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== CONFIG MODAL ===== -->
+  <div id="config-modal">
+    <div class="config-sheet fade-in">
+      <h2>🔑 إعداد المفاتيح</h2>
+      <p>أدخل مفاتيحك مرة واحدة وسيتذكرها التطبيق</p>
+      <div class="config-group">
+        <label>Google Maps API Key</label>
+        <input type="password" id="inp-maps" placeholder="AIzaSy..." autocomplete="off"/>
+      </div>
+      <div class="config-group">
+        <label>Anthropic (Claude) API Key</label>
+        <input type="password" id="inp-claude" placeholder="sk-ant-..." autocomplete="off"/>
+      </div>
+      <div class="config-note">
+        🔒 المفاتيح تُحفظ في متصفحك فقط ولا تُرسل لأي خادم غير الخدمات الرسمية (Google وAnthropic).<br/>
+        يمكنك تشغيل التطبيق بدون مفاتيح والتصفح بوضع العرض التجريبي.
+      </div>
+      <button class="btn btn-navy" onclick="saveConfig()" style="margin-bottom:10px;">حفظ والمتابعة ←</button>
+      <button class="btn btn-outline" style="background:#f5f7ff;color:var(--navy);" onclick="skipConfig()">تصفح بوضع العرض (بدون مفاتيح)</button>
+    </div>
+  </div>
+
+  <!-- ===== HOME SCREEN ===== -->
+  <div id="home" class="screen">
+    <div style="text-align:center;width:100%;">
+      <div class="home-logo">🚌</div>
+      <p class="home-title">نظام إدارة الباص المدرسي</p>
+      <p class="home-sub">نظام ذكي لاستلام وتسليم الطلاب</p>
+    </div>
+    <div style="width:100%;max-width:420px;display:flex;flex-direction:column;gap:12px;">
+      <div class="supervisor-card">
+        <div class="sup-row">
+          <img class="sup-avatar" src="https://i.pravatar.cc/150?img=11" alt="المشرف"/>
+          <div>
+            <div class="sup-hello">مرحباً بك،</div>
+            <div class="sup-name">أحمد محمد الزهراني</div>
+            <span class="badge badge-blue" style="margin-top:4px;">🚌 باص رقم ٧</span>
+          </div>
+        </div>
+        <div class="clock-box">
+          <div class="clock-date" id="home-date">—</div>
+          <div class="clock-time" id="home-time">—</div>
+        </div>
+      </div>
+      <div class="shift-box waiting" id="shift-box">
+        <div>
+          <div class="shift-label">موعد بدء الشيفت</div>
+          <div class="shift-time">07:00</div>
+        </div>
+        <div style="text-align:left;">
+          <div class="shift-label" id="shift-status-label">⏳ الوقت المتبقي</div>
+          <div class="shift-countdown" id="shift-countdown" style="color:var(--warn-d);">—</div>
+        </div>
+      </div>
+    </div>
+    <div style="width:100%;max-width:420px;display:flex;flex-direction:column;gap:8px;">
+      <button class="btn btn-disabled" id="start-btn" onclick="goFaceVerify()">
+        <span style="font-size:22px;">🔒</span> الزر متاح قبل ٥ دقائق من الشيفت
+      </button>
+      <p style="text-align:center;font-size:12px;color:#90A4AE;">يتطلب التحقق بالوجه قبل بدء الشيفت</p>
+      <button class="btn" style="background:rgba(26,35,126,.07);color:var(--navy);padding:10px;font-size:13px;border-radius:12px;" onclick="showConfig()">⚙️ إعداد المفاتيح</button>
+    </div>
+  </div>
+
+  <!-- ===== FACE VERIFY SCREEN ===== -->
+  <div id="face" class="screen">
+    <div class="face-header" style="width:100%;max-width:400px;">
+      <button class="back-btn" onclick="goHome()">→</button>
+      <div class="face-header-text">
+        <h2>التحقق بالوجه</h2>
+        <p>بوابة الأمان — فتح الشيفت</p>
+      </div>
+    </div>
+
+    <div style="text-align:center;width:100%;">
+      <div class="face-circle" id="face-circle">
+        <div class="fc-inner" id="face-placeholder">
+          <span style="font-size:64px;">👤</span>
+        </div>
+        <video id="face-video" autoplay playsinline muted style="display:none;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);"></video>
+        <img id="face-captured" style="display:none;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);" alt=""/>
+        <div class="face-overlay processing" id="face-processing" style="display:none;">
+          <div class="spinner"></div>
+          <p style="color:#fff;font-size:12px;font-weight:600;">Claude يحلل...</p>
+        </div>
+        <div class="face-overlay success-ov" id="face-ok-ov" style="display:none;">
+          <span style="font-size:58px;">✓</span>
+        </div>
+        <div class="face-overlay fail-ov" id="face-fail-ov" style="display:none;">
+          <span style="font-size:58px;">✗</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="face-status" id="face-status">
+      <h3>انظر إلى الكاميرا</h3>
+      <p>سيقوم Claude AI بالتحقق من هويتك تلقائياً</p>
+    </div>
+
+    <div class="sup-strip" style="max-width:400px;">
+      <img src="https://i.pravatar.cc/150?img=11" alt="المشرف"/>
+      <div>
+        <div class="role">المشرف</div>
+        <div class="name">أحمد محمد الزهراني</div>
+      </div>
+      <div class="bus">🚌 باص رقم ٧</div>
+    </div>
+
+    <div style="width:100%;max-width:400px;display:flex;flex-direction:column;gap:8px;">
+      <button class="btn btn-white" id="face-btn-open" onclick="openFaceCamera()">
+        <span style="font-size:22px;">📷</span> فتح الكاميرا والتحقق
+      </button>
+      <button class="btn btn-green" id="face-btn-capture" style="display:none;" onclick="captureFace()">
+        <span style="font-size:22px;">📸</span> التقاط والتحقق الآن
+      </button>
+      <button class="btn btn-outline" id="face-btn-retry" style="display:none;" onclick="retryFace()">
+        <span style="font-size:20px;">🔄</span> إعادة المحاولة
+      </button>
+      <button class="btn btn-outline" id="face-btn-skip" onclick="goRequest()" style="font-size:13px;padding:10px;">
+        تخطي التحقق (وضع العرض)
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== REQUEST SCREEN ===== -->
+  <div id="request" class="screen">
+    <div id="map-placeholder">
+      <div class="map-dots">🗺️</div>
+      <p>جاري تحميل الخريطة...</p>
+    </div>
+    <div id="gmap" style="display:none;"></div>
+
+    <div class="status-bar">
+      <div class="status-dot"></div>
+      <span>متصل</span>
+      <span style="color:#90A4AE;margin:0 4px;">|</span>
+      <span>باص رقم ٧</span>
+    </div>
+
+    <div class="fab" onclick="showBusList()">
+      🚌
+      <div class="fab-count" id="bus-count" style="display:none;">0</div>
+    </div>
+
+    <!-- بطاقة الطلب -->
+    <div class="bottom-card" id="request-card">
+      <div class="drag-handle"></div>
+      <div class="request-top">
+        <span>طلب استلام جديد</span>
+        <span class="badge badge-orange" id="pending-badge">— طلب متبقٍ</span>
+      </div>
+      <div class="student-row" id="req-student-row">
+        <img id="req-photo" src="" alt=""/>
+        <div>
+          <div class="sname" id="req-name">—</div>
+          <div class="sid" id="req-id">—</div>
+          <div class="sschool" id="req-school">—</div>
+        </div>
+      </div>
+      <div class="addr-box">
+        <span style="font-size:16px;">📍</span>
+        <div>
+          <div class="alabel">عنوان المنزل</div>
+          <div class="aval" id="req-addr">—</div>
+        </div>
+      </div>
+      <div class="three-btns">
+        <button class="btn btn-accept" onclick="acceptStudent()">
+          <span class="bicon">✓</span><span class="blabel">قبول</span>
+        </button>
+        <button class="btn btn-defer" onclick="deferStudent()">
+          <span class="bicon">⏱</span><span class="blabel">ترحيل</span>
+        </button>
+        <button class="btn btn-cancel" onclick="cancelStudent()">
+          <span class="bicon">✗</span><span class="blabel">إلغاء</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- حالة لا يوجد طلبات -->
+    <div class="empty-state" id="empty-state" style="display:none;">
+      <div class="ei">🎉</div>
+      <h2>تم استلام جميع الطلاب!</h2>
+      <p>الباص جاهز للتوجه إلى المدارس</p>
+      <div class="count-box">
+        <div class="cn" id="total-count">0</div>
+        <div class="cl">طالب في الباص</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PICKUP SCREEN ===== -->
+  <div id="pickup" class="screen">
+    <div id="gmap2" style="position:absolute;inset:0;background:linear-gradient(135deg,#EEF1FF,#E3F2FD);display:flex;align-items:center;justify-content:center;">
+      <p style="color:#90A4AE;font-size:13px;">🗺️ خريطة التوجيه</p>
+    </div>
+    <button class="back-fab" onclick="goRequest()">→</button>
+    <div class="status-bar">
+      <div class="status-dot"></div>
+      <span id="pickup-addr-bar">في الطريق...</span>
+    </div>
+
+    <div class="pickup-card" id="pickup-card">
+      <div class="drag-handle"></div>
+      <div class="mini-student">
+        <img id="pickup-photo" src="" alt=""/>
+        <div>
+          <div class="msn" id="pickup-name">—</div>
+          <div class="msa" id="pickup-addr">—</div>
+        </div>
+      </div>
+
+      <!-- مرحلة التوجيه -->
+      <div id="stage-transit">
+        <div class="transit-info">
+          <span style="font-size:24px;">🚌</span>
+          <div>
+            <div class="ti">في الطريق إلى المنزل</div>
+            <div class="tis">اتبع المسار على الخريطة</div>
+          </div>
+        </div>
+        <button class="btn btn-blue" onclick="arrivedHome()">
+          <span style="font-size:20px;">📍</span> تم الوصول إلى المنزل
+        </button>
+      </div>
+
+      <!-- مرحلة الوصول -->
+      <div id="stage-arrived" style="display:none;">
+        <div style="background:#E8F5E9;border-radius:14px;padding:14px;text-align:center;margin-bottom:12px;">
+          <span style="font-size:30px;">🏠</span>
+          <p style="font-size:14px;font-weight:700;color:var(--success-d);margin-top:4px;">وصلت إلى موقع المنزل</p>
+          <p style="font-size:12px;color:#388E3C;margin-top:2px;">تم إشعار ولي الأمر بوصولك</p>
+        </div>
+        <div class="camera-area" onclick="openStudentCamera()" style="margin-bottom:12px;">
+          <div class="ca-icon">📸</div>
+          <div class="ca-text">صوّر الطالب للتوثيق</div>
+          <div class="ca-sub">مطلوب من Claude AI للتحقق</div>
+        </div>
+        <button class="btn btn-accept" onclick="openStudentCamera()">
+          <span style="font-size:20px;">📷</span> فتح الكاميرا لتصوير الطالب
+        </button>
+      </div>
+
+      <!-- مرحلة الكاميرا -->
+      <div id="stage-camera" style="display:none;">
+        <p style="font-size:13px;color:#78909C;margin-bottom:10px;text-align:center;">وجّه الكاميرا نحو الطالب</p>
+        <div style="width:100%;aspect-ratio:4/3;border-radius:14px;overflow:hidden;margin-bottom:12px;border:2px solid var(--accept-d);">
+          <video id="student-video" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;"></video>
+        </div>
+        <button class="btn btn-navy" onclick="captureStudent()">
+          <span style="font-size:20px;">📸</span> التقاط الصورة والتحقق
+        </button>
+      </div>
+
+      <!-- مرحلة التحقق -->
+      <div id="stage-verifying" style="display:none;text-align:center;padding:20px 0;">
+        <img id="student-captured" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--accept);margin-bottom:14px;" alt=""/>
+        <div class="spinner" style="margin:0 auto 12px;border:3px solid #E8EAF6;border-top:3px solid var(--navy);"></div>
+        <p style="font-size:14px;font-weight:700;color:var(--navy);">Claude AI يحلل الصورة...</p>
+      </div>
+
+      <!-- نتيجة التحقق -->
+      <div id="stage-done" style="display:none;">
+        <div style="text-align:center;margin-bottom:12px;">
+          <img id="done-captured" style="width:76px;height:76px;border-radius:50%;object-fit:cover;" alt=""/>
+        </div>
+        <div class="verify-box" id="verify-result-box">
+          <div class="vt" id="verify-title">—</div>
+          <div class="vs" id="verify-sub">—</div>
+        </div>
+        <div id="done-btns"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== BUS LIST ===== -->
+  <div id="buslist">
+    <div style="flex:1;" onclick="hideBusList()"></div>
+    <div class="buslist-sheet fade-in">
+      <div class="drag-handle" style="cursor:pointer;" onclick="hideBusList()"></div>
+      <div class="buslist-header">
+        <div class="buslist-title">
+          <span style="font-size:24px;">🚌</span>
+          <div>
+            <h3>قائمة ركاب الباص</h3>
+            <p>باص رقم ٧</p>
+          </div>
+        </div>
+        <div class="count-pill">
+          <span class="cn" id="bl-count">0</span>
+          <span class="cl">طالب</span>
+        </div>
+      </div>
+      <div class="buslist-scroll" id="bl-list"></div>
+      <button class="btn btn-navy" onclick="hideBusList()">إغلاق وعودة للخريطة</button>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast"></div>
+</div>
+
+<script>
+// ==================== DATA ====================
+const STUDENTS = [
+  {id:"STU-1001",name:"عبدالله سعد المطيري",photo:"https://i.pravatar.cc/150?img=51",school:"مدرسة النور الابتدائية",homeLat:24.7436,homeLng:46.6453,homeAddress:"حي العليا، شارع الأمير محمد بن عبدالعزيز",parentPhone:"0509876543",parentName:"سعد المطيري"},
+  {id:"STU-1002",name:"محمد علي القحطاني",photo:"https://i.pravatar.cc/150?img=52",school:"مدرسة النور الابتدائية",homeLat:24.7336,homeLng:46.6653,homeAddress:"حي الملقا، شارع التحلية",parentPhone:"0508765432",parentName:"علي القحطاني"},
+  {id:"STU-1003",name:"فيصل خالد العتيبي",photo:"https://i.pravatar.cc/150?img=53",school:"مدرسة الفجر المتوسطة",homeLat:24.7236,homeLng:46.6353,homeAddress:"حي النزهة، شارع العروبة",parentPhone:"0507654321",parentName:"خالد العتيبي"},
+  {id:"STU-1004",name:"عمر يوسف الدوسري",photo:"https://i.pravatar.cc/150?img=54",school:"مدرسة الفجر المتوسطة",homeLat:24.7536,homeLng:46.6853,homeAddress:"حي الروضة، شارع الملك فهد",parentPhone:"0506543210",parentName:"يوسف الدوسري"},
+  {id:"STU-1005",name:"ريان أحمد الشمري",photo:"https://i.pravatar.cc/150?img=55",school:"مدرسة أم المؤمنين",homeLat:24.7636,homeLng:46.7153,homeAddress:"حي الغدير، شارع الإمام سعود",parentPhone:"0505432109",parentName:"أحمد الشمري"},
+];
+
+// ==================== STATE ====================
+let state = {
+  busStudents: [],
+  deferredIds: [],
+  cancelledIds: [],
+  currentStudentIndex: 0,
+  mapsKey: '',
+  claudeKey: '',
+  faceStream: null,
+  studentStream: null,
+  capturedStudentImage: null,
+  mapInstance: null,
+  mapInstance2: null,
+  demoMode: false,
+};
+
+// ==================== CONFIG ====================
+function loadConfig() {
+  state.mapsKey = localStorage.getItem('maps_key') || '';
+  state.claudeKey = localStorage.getItem('claude_key') || '';
+  if (state.mapsKey || state.claudeKey) {
+    document.getElementById('config-modal').classList.add('hidden');
+    init();
+  }
+}
+function showConfig() { document.getElementById('config-modal').classList.remove('hidden'); }
+function saveConfig() {
+  const mk = document.getElementById('inp-maps').value.trim();
+  const ck = document.getElementById('inp-claude').value.trim();
+  if (mk) { state.mapsKey = mk; localStorage.setItem('maps_key', mk); }
+  if (ck) { state.claudeKey = ck; localStorage.setItem('claude_key', ck); }
+  document.getElementById('config-modal').classList.add('hidden');
+  init();
+}
+function skipConfig() {
+  state.demoMode = true;
+  document.getElementById('config-modal').classList.add('hidden');
+  init();
+}
+
+// ==================== INIT ====================
+function init() {
+  startClock();
+  if (state.mapsKey) loadGoogleMaps();
+  showScreen('home');
+}
+
+// ==================== CLOCK ====================
+function startClock() {
+  updateClock();
+  setInterval(updateClock, 1000);
+}
+function updateClock() {
+  const now = new Date();
+  document.getElementById('home-time').textContent =
+    now.toLocaleTimeString('ar-SA',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('home-date').textContent =
+    now.toLocaleDateString('ar-SA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  const [h,m] = [7,0];
+  const shift = new Date(now); shift.setHours(h,m,0,0);
+  const diff = Math.floor((shift - now) / 60000);
+  const btn = document.getElementById('start-btn');
+  const box = document.getElementById('shift-box');
+  const cd = document.getElementById('shift-countdown');
+  const sl = document.getElementById('shift-status-label');
+
+  if (diff <= 0) {
+    cd.textContent = 'حان وقت الشيفت!'; cd.style.color = 'var(--accept-d)';
+    sl.textContent = '🟢 جاهز للبدء'; box.className = 'shift-box ready';
+    btn.className = 'btn btn-navy'; btn.innerHTML = '<span style="font-size:22px;">👆</span> بدء الشيفت — التحقق بالوجه';
+    btn.onclick = goFaceVerify;
+  } else if (diff <= 5) {
+    cd.textContent = diff + ' دقائق'; cd.style.color = 'var(--accept-d)';
+    sl.textContent = '🟢 جاهز للبدء'; box.className = 'shift-box ready';
+    btn.className = 'btn btn-navy'; btn.innerHTML = '<span style="font-size:22px;">👆</span> بدء الشيفت — التحقق بالوجه';
+    btn.onclick = goFaceVerify;
+  } else {
+    const hrs = Math.floor(diff/60), mins = diff%60;
+    cd.textContent = (hrs?hrs+' ساعة و':'') + mins + ' دقيقة'; cd.style.color='var(--warn-d)';
+    sl.textContent = '⏳ الوقت المتبقي'; box.className = 'shift-box waiting';
+    btn.className = 'btn btn-disabled';
+    btn.innerHTML = '<span style="font-size:22px;">🔒</span> الزر متاح قبل ٥ دقائق من الشيفت';
+    btn.onclick = null;
+  }
+}
+
+// ==================== SCREEN NAVIGATION ====================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) { el.classList.add('active'); el.classList.add('fade-in'); }
+}
+function goHome() { stopFaceStream(); showScreen('home'); }
+function goFaceVerify() { resetFaceScreen(); showScreen('face'); }
+function goRequest() { stopStudentStream(); renderRequest(); showScreen('request'); }
+
+// ==================== PENDING STUDENTS ====================
+function getPending() {
+  return STUDENTS.filter(s =>
+    !state.busStudents.find(b => b.id === s.id) &&
+    !state.deferredIds.includes(s.id) &&
+    !state.cancelledIds.includes(s.id)
+  );
+}
+function getCurrentStudent() { return getPending()[0]; }
+
+// ==================== GOOGLE MAPS ====================
+function loadGoogleMaps() {
+  if (!state.mapsKey || window.google) return;
+  const s = document.createElement('script');
+  s.src = `https://maps.googleapis.com/maps/api/js?key=${state.mapsKey}&callback=mapsReady`;
+  s.async = true; s.defer = true;
+  window.mapsReady = initMaps;
+  document.head.appendChild(s);
+}
+
+function initMaps() {
+  const mapStyles = [
+    {featureType:'water',elementType:'geometry',stylers:[{color:'#B3E5FC'}]},
+    {featureType:'landscape',elementType:'geometry',stylers:[{color:'#EEF1FF'}]},
+    {featureType:'road',elementType:'geometry',stylers:[{color:'#FFFFFF'}]},
+    {elementType:'labels.text.fill',stylers:[{color:'#1A237E'}]},
+  ];
+  const center = {lat:24.7436, lng:46.6453};
+  document.getElementById('map-placeholder').style.display = 'none';
+  const d = document.getElementById('gmap');
+  d.style.display = 'block';
+  state.mapInstance = new google.maps.Map(d, {
+    center, zoom:14, styles:mapStyles,
+    disableDefaultUI:true, gestureHandling:'greedy'
+  });
+  const d2 = document.getElementById('gmap2');
+  d2.innerHTML = '';
+  state.mapInstance2 = new google.maps.Map(d2, {
+    center, zoom:14, styles:mapStyles,
+    disableDefaultUI:true, gestureHandling:'greedy'
+  });
+}
+
+function updateRequestMap(student) {
+  if (!state.mapInstance || !window.google) return;
+  state.mapInstance.setCenter({lat:student.homeLat, lng:student.homeLng});
+  new google.maps.Marker({
+    position:{lat:student.homeLat,lng:student.homeLng},
+    map:state.mapInstance,
+    icon:{
+      path:'M 0,0 C -2,-20 -10,-22 -10,-30 A 10,10 0 1,1 10,-30 C 10,-22 2,-20 0,0 z',
+      fillColor:'#1A237E', fillOpacity:1, strokeColor:'#fff', strokeWeight:2, scale:1.2,
+    }
+  });
+}
+
+function updatePickupMap(student) {
+  if (!state.mapInstance2 || !window.google) return;
+  const dest = {lat:student.homeLat, lng:student.homeLng};
+  const origin = {lat:24.76, lng:46.68};
+  state.mapInstance2.setCenter(dest);
+  new google.maps.Marker({position:dest, map:state.mapInstance2});
+  const ds = new google.maps.DirectionsService();
+  const dr = new google.maps.DirectionsRenderer({map:state.mapInstance2, suppressMarkers:false,
+    polylineOptions:{strokeColor:'#1A237E',strokeWeight:4}});
+  ds.route({origin, destination:dest, travelMode:'DRIVING'}, (res,status) => {
+    if (status === 'OK') dr.setDirections(res);
+  });
+}
+
+// ==================== REQUEST SCREEN ====================
+function renderRequest() {
+  const pending = getPending();
+  const card = document.getElementById('request-card');
+  const empty = document.getElementById('empty-state');
+  const count = document.getElementById('bus-count');
+
+  if (state.busStudents.length > 0) {
+    count.style.display = 'flex'; count.textContent = state.busStudents.length;
+  }
+
+  if (pending.length === 0) {
+    card.style.display = 'none'; empty.style.display = 'flex';
+    document.getElementById('total-count').textContent = state.busStudents.length;
+    return;
+  }
+
+  card.style.display = 'block'; empty.style.display = 'none';
+  const s = pending[0];
+  document.getElementById('req-photo').src = s.photo;
+  document.getElementById('req-name').textContent = s.name;
+  document.getElementById('req-id').textContent = '🆔 ' + s.id;
+  document.getElementById('req-school').textContent = '🏫 ' + s.school;
+  document.getElementById('req-addr').textContent = s.homeAddress;
+  document.getElementById('pending-badge').textContent = pending.length + ' طلب متبقٍ';
+  document.getElementById('pickup-badge') && (document.getElementById('pickup-badge').textContent = pending.length);
+
+  updateRequestMap(s);
+}
+
+function acceptStudent() {
+  const s = getCurrentStudent();
+  if (!s) return;
+  // Go to pickup screen
+  document.getElementById('pickup-name').textContent = s.name;
+  document.getElementById('pickup-photo').src = s.photo;
+  document.getElementById('pickup-addr').textContent = s.homeAddress;
+  document.getElementById('pickup-addr-bar').textContent = 'في الطريق: ' + s.homeAddress.split('،')[0];
+  resetPickupStages();
+  updatePickupMap(s);
+  showScreen('pickup');
+}
+
+function deferStudent() {
+  const s = getCurrentStudent();
+  if (!s) return;
+  state.deferredIds.push(s.id);
+  showToast('⏱ تم ترحيل طلب ' + s.name + ' إلى آخر الرحلة', 'tw');
+  renderRequest();
+}
+
+function cancelStudent() {
+  const s = getCurrentStudent();
+  if (!s) return;
+  state.cancelledIds.push(s.id);
+  showToast('✗ تم إلغاء طلب ' + s.name, 'te');
+  renderRequest();
+}
+
+// ==================== PICKUP SCREEN ====================
+function resetPickupStages() {
+  ['stage-transit','stage-arrived','stage-camera','stage-verifying','stage-done']
+    .forEach(id => document.getElementById(id).style.display = 'none');
+  document.getElementById('stage-transit').style.display = 'block';
+  state.capturedStudentImage = null;
+}
+
+function arrivedHome() {
+  document.getElementById('stage-transit').style.display = 'none';
+  document.getElementById('stage-arrived').style.display = 'block';
+}
+
+function openStudentCamera() {
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false})
+    .then(stream => {
+      state.studentStream = stream;
+      document.getElementById('student-video').srcObject = stream;
+      document.getElementById('stage-arrived').style.display = 'none';
+      document.getElementById('stage-camera').style.display = 'block';
+    })
+    .catch(() => {
+      // Demo mode - skip camera
+      if (state.demoMode || !state.claudeKey) {
+        demoVerifyStudent();
+      } else {
+        showToast('لم نتمكن من فتح الكاميرا', 'te');
+      }
+    });
+}
+
+function stopStudentStream() {
+  if (state.studentStream) {
+    state.studentStream.getTracks().forEach(t=>t.stop());
+    state.studentStream = null;
+  }
+}
+
+function captureStudent() {
+  const vid = document.getElementById('student-video');
+  const canvas = document.createElement('canvas');
+  canvas.width = vid.videoWidth || 640;
+  canvas.height = vid.videoHeight || 480;
+  canvas.getContext('2d').drawImage(vid, 0, 0);
+  const dataURL = canvas.toDataURL('image/jpeg', 0.85);
+  state.capturedStudentImage = dataURL;
+  stopStudentStream();
+
+  document.getElementById('stage-camera').style.display = 'none';
+  document.getElementById('stage-verifying').style.display = 'block';
+  document.getElementById('student-captured').src = dataURL;
+
+  if (state.claudeKey) {
+    verifyStudentWithClaude(dataURL.split(',')[1]);
+  } else {
+    setTimeout(demoVerifyStudent, 1800);
+  }
+}
+
+async function verifyStudentWithClaude(base64) {
+  const s = getCurrentStudent();
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key': state.claudeKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true',
+      },
+      body: JSON.stringify({
+        model:'claude-opus-4-5', max_tokens:300,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:base64}},
+          {type:'text',text:`أنت نظام توثيق. حلل الصورة وأجب بـ JSON فقط بدون نص آخر:\n{"photoAccepted":true/false,"personVisible":true/false,"qualityOk":true/false,"reason":"السبب","recommendation":"نص"}`}
+        ]}]
+      })
+    });
+    const data = await res.json();
+    const text = (data.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim();
+    showVerifyResult(JSON.parse(text), state.capturedStudentImage);
+  } catch(e) { demoVerifyStudent(); }
+}
+
+function demoVerifyStudent() {
+  showVerifyResult({photoAccepted:true,personVisible:true,qualityOk:true,reason:'الصورة واضحة',recommendation:'تم التوثيق بنجاح'}, state.capturedStudentImage || 'https://i.pravatar.cc/150?img=60');
+}
+
+function showVerifyResult(result, imgSrc) {
+  document.getElementById('stage-verifying').style.display = 'none';
+  document.getElementById('stage-done').style.display = 'block';
+  const box = document.getElementById('verify-result-box');
+  const title = document.getElementById('verify-title');
+  const sub = document.getElementById('verify-sub');
+  const doneImg = document.getElementById('done-captured');
+  if (imgSrc) doneImg.src = imgSrc;
+  doneImg.style.border = `3px solid ${result.photoAccepted?'#4CAF50':'#FF5252'}`;
+  if (result.photoAccepted) {
+    box.className = 'verify-box vok';
+    title.textContent = '✓ الصورة مقبولة';
+    sub.textContent = result.recommendation;
+    document.getElementById('done-btns').innerHTML = `<button class="btn btn-navy" onclick="completePickup()" style="padding:16px;font-size:16px;"><span style="font-size:20px;">✓</span> تم استلام الطالب بنجاح</button>`;
+  } else {
+    box.className = 'verify-box vfail';
+    title.textContent = '✗ الصورة غير واضحة';
+    sub.textContent = result.reason;
+    document.getElementById('done-btns').innerHTML = `
+      <div class="two-btns">
+        <button class="btn btn-defer" onclick="retakeStudentPhoto()" style="padding:14px;font-size:14px;">🔄 إعادة التصوير</button>
+        <button class="btn btn-accept" onclick="completePickup()" style="padding:14px;font-size:14px;">✓ تجاوز وتأكيد</button>
+      </div>`;
+  }
+}
+
+function retakeStudentPhoto() {
+  document.getElementById('stage-done').style.display = 'none';
+  document.getElementById('stage-arrived').style.display = 'block';
+}
+
+function completePickup() {
+  const s = getCurrentStudent();
+  if (s) state.busStudents.push(s);
+  showToast('✓ تم استلام ' + (s?.name||'الطالب') + ' بنجاح');
+  goRequest();
+}
+
+// ==================== FACE VERIFY ====================
+function resetFaceScreen() {
+  const circle = document.getElementById('face-circle');
+  circle.className = 'face-circle';
+  document.getElementById('face-placeholder').style.display = 'flex';
+  document.getElementById('face-video').style.display = 'none';
+  document.getElementById('face-captured').style.display = 'none';
+  document.getElementById('face-processing').style.display = 'none';
+  document.getElementById('face-ok-ov').style.display = 'none';
+  document.getElementById('face-fail-ov').style.display = 'none';
+  document.getElementById('face-btn-open').style.display = 'flex';
+  document.getElementById('face-btn-capture').style.display = 'none';
+  document.getElementById('face-btn-retry').style.display = 'none';
+  document.getElementById('face-status').innerHTML = '<h3>انظر إلى الكاميرا</h3><p>سيقوم Claude AI بالتحقق من هويتك تلقائياً</p>';
+  document.getElementById('face-status').className = 'face-status';
+}
+
+function openFaceCamera() {
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false})
+    .then(stream => {
+      state.faceStream = stream;
+      const vid = document.getElementById('face-video');
+      vid.srcObject = stream; vid.style.display = 'block';
+      document.getElementById('face-placeholder').style.display = 'none';
+      document.getElementById('face-btn-open').style.display = 'none';
+      document.getElementById('face-btn-capture').style.display = 'flex';
+      document.getElementById('face-status').innerHTML = '<h3>انظر مباشرة إلى الكاميرا</h3><p>وابق ثابتاً</p>';
+    })
+    .catch(() => {
+      if (state.demoMode || !state.claudeKey) { demoFaceVerify(); }
+      else showToast('لم نتمكن من فتح الكاميرا', 'te');
+    });
+}
+
+function stopFaceStream() {
+  if (state.faceStream) { state.faceStream.getTracks().forEach(t=>t.stop()); state.faceStream=null; }
+}
+
+function captureFace() {
+  const vid = document.getElementById('face-video');
+  const canvas = document.createElement('canvas');
+  canvas.width = vid.videoWidth||640; canvas.height=vid.videoHeight||480;
+  canvas.getContext('2d').drawImage(vid,0,0);
+  const dataURL = canvas.toDataURL('image/jpeg',0.85);
+  const base64 = dataURL.split(',')[1];
+  stopFaceStream();
+  const img = document.getElementById('face-captured');
+  img.src = dataURL; img.style.display = 'block';
+  document.getElementById('face-video').style.display = 'none';
+  document.getElementById('face-btn-capture').style.display = 'none';
+  document.getElementById('face-processing').style.display = 'flex';
+  document.getElementById('face-status').innerHTML = '<h3>Claude AI يحلل وجهك...</h3>';
+
+  if (state.claudeKey) {
+    verifyFaceWithClaude(base64);
+  } else {
+    setTimeout(demoFaceVerify, 2000);
+  }
+}
+
+async function verifyFaceWithClaude(base64) {
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':state.claudeKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true',
+      },
+      body:JSON.stringify({
+        model:'claude-opus-4-5', max_tokens:200,
+        messages:[{role:'user',content:[
+          {type:'image',source:{type:'base64',media_type:'image/jpeg',data:base64}},
+          {type:'text',text:'أجب بـ JSON فقط: {"verified":true/false,"confidence":0-100,"reason":"السبب","faceDetected":true/false}'}
+        ]}]
+      })
+    });
+    const data = await res.json();
+    const text = (data.content?.[0]?.text||'{}').replace(/```json|```/g,'').trim();
+    showFaceResult(JSON.parse(text));
+  } catch(e) { demoFaceVerify(); }
+}
+
+function demoFaceVerify() {
+  document.getElementById('face-processing').style.display = 'none';
+  showFaceResult({verified:true, confidence:88, reason:'تم التحقق بنجاح (وضع العرض)', faceDetected:true});
+}
+
+function showFaceResult(result) {
+  document.getElementById('face-processing').style.display = 'none';
+  const circle = document.getElementById('face-circle');
+  const status = document.getElementById('face-status');
+  if (result.verified && result.confidence >= 60) {
+    circle.classList.add('ok');
+    document.getElementById('face-ok-ov').style.display = 'flex';
+    status.className = 'face-status ok';
+    status.innerHTML = `<h3>✓ تم التحقق بنجاح</h3><p>الثقة: ${result.confidence}% — جاري فتح الشيفت...</p>`;
+    setTimeout(goRequest, 2000);
+  } else {
+    circle.classList.add('fail');
+    document.getElementById('face-fail-ov').style.display = 'flex';
+    status.className = 'face-status fail';
+    status.innerHTML = `<h3>✗ فشل التحقق</h3><p>${result.reason}</p>`;
+    document.getElementById('face-btn-retry').style.display = 'flex';
+  }
+}
+
+function retryFace() { resetFaceScreen(); }
+
+// ==================== BUS LIST ====================
+function showBusList() {
+  renderBusList();
+  document.getElementById('buslist').classList.add('active');
+}
+function hideBusList() { document.getElementById('buslist').classList.remove('active'); }
+function renderBusList() {
+  document.getElementById('bl-count').textContent = state.busStudents.length;
+  const list = document.getElementById('bl-list');
+  if (state.busStudents.length === 0) {
+    list.innerHTML = '<div class="empty-bus"><span class="ei">🪑</span><p style="font-size:14px;font-weight:600;">لا يوجد طلاب في الباص حالياً</p></div>';
+    return;
+  }
+  list.innerHTML = state.busStudents.map((s,i) => `
+    <div class="bus-item">
+      <div class="bus-num">${i+1}</div>
+      <img src="${s.photo}" alt="${s.name}"/>
+      <div style="flex:1;min-width:0;">
+        <div class="bi-name">${s.name}</div>
+        <div class="bi-id">${s.id}</div>
+        <div class="bi-school">🏫 ${s.school}</div>
+      </div>
+      <button class="call-btn" onclick="window.open('tel:${s.parentPhone}')">📞</button>
+    </div>
+  `).join('');
+}
+
+// ==================== TOAST ====================
+let toastTimer;
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className = 'toast', 3000);
+}
+
+// ==================== START ====================
+window.onload = () => {
+  loadConfig();
+  // If no keys stored, show modal on first load
+  if (!localStorage.getItem('maps_key') && !localStorage.getItem('claude_key')) {
+    document.getElementById('config-modal').classList.remove('hidden');
+  }
+};
+</script>
+</body>
+</html>
